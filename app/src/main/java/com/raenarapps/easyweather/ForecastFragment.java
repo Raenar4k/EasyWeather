@@ -14,12 +14,17 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,6 +33,8 @@ import java.util.List;
 public class ForecastFragment extends Fragment {
 
     public static final String MY_API_KEY = "7696b400d1eee64d5870fdb450179396";
+    public static final String TAG = "ForecastFragment";
+    private ForecastAdapter forecastAdapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -51,18 +58,21 @@ public class ForecastFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.content_main, container, false);
         RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_forecast);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        recyclerView.setAdapter(new ForecastAdapter(weekForecast));
+        forecastAdapter = new ForecastAdapter(weekForecast);
+        recyclerView.setAdapter(forecastAdapter);
         return rootView;
     }
 
-    class NetworkTask extends AsyncTask<String, Void, String> {
+    class NetworkTask extends AsyncTask<String, Void, String[]> {
 
         @Override
-        protected String doInBackground(String... params) {
+        protected String[] doInBackground(String... params) {
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
 
             String forecastJsonStr = null;
+            String[] resultStrs = null;
+            int numDays = 7;
 
             try {
                 final String FORECAST_BASE_URL =
@@ -77,7 +87,7 @@ public class ForecastFragment extends Fragment {
                         .appendQueryParameter(QUERY_PARAM, params[0])
                         .appendQueryParameter(FORMAT_PARAM, "json")
                         .appendQueryParameter(UNITS_PARAM, "metric")
-                        .appendQueryParameter(DAYS_PARAM, "7")
+                        .appendQueryParameter(DAYS_PARAM, Integer.toString(numDays))
                         .appendQueryParameter(APPID_PARAM, MY_API_KEY)
                         .build();
 
@@ -103,9 +113,12 @@ public class ForecastFragment extends Fragment {
                     return null;
                 }
                 forecastJsonStr = buffer.toString();
+                resultStrs = getWeatherDataFromJson(forecastJsonStr, numDays);
             } catch (IOException e) {
-                Log.e("ForecastFragment", "Error ", e);
+                Log.e(TAG, "Error ", e);
                 return null;
+            } catch (JSONException e) {
+                Log.e(TAG, "JSON Exception ", e);
             } finally {
                 if (urlConnection != null) {
                     urlConnection.disconnect();
@@ -114,12 +127,21 @@ public class ForecastFragment extends Fragment {
                     try {
                         reader.close();
                     } catch (final IOException e) {
-                        Log.e("ForecastFragment", "Error closing stream", e);
+                        Log.e(TAG, "Error closing stream", e);
                     }
                 }
             }
-            Log.d("test",forecastJsonStr);
-            return forecastJsonStr;
+            Log.d("test", forecastJsonStr);
+            return resultStrs;
+        }
+
+        @Override
+        protected void onPostExecute(String[] result) {
+            if (result != null){
+                forecastAdapter.forecastArray.clear();
+                forecastAdapter.forecastArray.addAll(Arrays.asList(result));
+                forecastAdapter.notifyDataSetChanged();
+            }
         }
     }
 
@@ -136,5 +158,60 @@ public class ForecastFragment extends Fragment {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private String getReadableDateString(long time) {
+        SimpleDateFormat shortenedDateFormat = new SimpleDateFormat("EEE MMM dd");
+        return shortenedDateFormat.format(time);
+    }
+
+    private String formatHighLows(double high, double low) {
+        long roundedHigh = Math.round(high);
+        long roundedLow = Math.round(low);
+        String highLowStr = roundedHigh + "/" + roundedLow;
+        return highLowStr;
+    }
+
+    private String[] getWeatherDataFromJson(String forecastJsonStr, int numDays)
+            throws JSONException {
+
+        final String OWM_LIST = "list";
+        final String OWM_WEATHER = "weather";
+        final String OWM_TEMPERATURE = "temp";
+        final String OWM_MAX = "max";
+        final String OWM_MIN = "min";
+        final String OWM_DESCRIPTION = "main";
+        final String OWM_DATE_TIME = "dt";
+
+        JSONObject forecastJson = new JSONObject(forecastJsonStr);
+        JSONArray weatherArray = forecastJson.getJSONArray(OWM_LIST);
+
+        String[] resultStrs = new String[numDays];
+        for (int i = 0; i < weatherArray.length(); i++) {
+
+            String day;
+            String description;
+            String highAndLow;
+
+            JSONObject dayForecast = weatherArray.getJSONObject(i);
+            long unixTime = dayForecast.getLong(OWM_DATE_TIME);
+            long dateTime = unixTime * 1000;
+            day = getReadableDateString(dateTime);
+
+            JSONObject weatherObject = dayForecast.getJSONArray(OWM_WEATHER).getJSONObject(0);
+            description = weatherObject.getString(OWM_DESCRIPTION);
+
+            JSONObject temperatureObject = dayForecast.getJSONObject(OWM_TEMPERATURE);
+            double high = temperatureObject.getDouble(OWM_MAX);
+            double low = temperatureObject.getDouble(OWM_MIN);
+
+            highAndLow = formatHighLows(high, low);
+            resultStrs[i] = day + " - " + description + " - " + highAndLow;
+        }
+
+        for (String s : resultStrs) {
+            Log.d(TAG, "Forecast entry: " + s);
+        }
+        return resultStrs;
     }
 }
