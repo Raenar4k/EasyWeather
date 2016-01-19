@@ -8,9 +8,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
-/**
- * Created by Raenar on 14.01.2016.
- */
+
 public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.ViewHolder> {
     List<String> forecastArray;
 
