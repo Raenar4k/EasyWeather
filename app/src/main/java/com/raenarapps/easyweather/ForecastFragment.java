@@ -1,8 +1,11 @@
 package com.raenarapps.easyweather;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -33,7 +36,7 @@ import java.util.List;
 public class ForecastFragment extends Fragment {
 
     public static final String MY_API_KEY = "7696b400d1eee64d5870fdb450179396";
-    public static final String TAG = "ForecastFragment";
+    public static final String TAG = ForecastFragment.class.getSimpleName();
     private ForecastAdapter forecastAdapter;
 
     @Override
@@ -44,23 +47,19 @@ public class ForecastFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        String[] data = {
-                "Mon 6/23 - Sunny - 31/17",
-                "Tue 6/24 - Foggy - 21/8",
-                "Wed 6/25 - Cloudy - 22/17",
-                "Thurs 6/26 - Rainy - 18/11",
-                "Fri 6/27 - Foggy - 21/10",
-                "Sat 6/28 - TRAPPED IN WEATHERSTATION - 23/18",
-                "Sun 6/29 - Sunny - 20/7"
-        };
-        List<String> weekForecast = new ArrayList<String>(Arrays.asList(data));
 
         View rootView = inflater.inflate(R.layout.content_main, container, false);
         RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_forecast);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        forecastAdapter = new ForecastAdapter(weekForecast);
+        forecastAdapter = new ForecastAdapter(new ArrayList<String>());
         recyclerView.setAdapter(forecastAdapter);
         return rootView;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        updateWeather();
     }
 
     class NetworkTask extends AsyncTask<String, Void, String[]> {
@@ -83,10 +82,13 @@ public class ForecastFragment extends Fragment {
                 final String DAYS_PARAM = "cnt";
                 final String APPID_PARAM = "APPID";
 
+                String unitsStr = PreferenceManager.getDefaultSharedPreferences(getContext())
+                        .getString(getString(R.string.pref_units_key),getString(R.string.pref_units_default));
+
                 Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
                         .appendQueryParameter(QUERY_PARAM, params[0])
                         .appendQueryParameter(FORMAT_PARAM, "json")
-                        .appendQueryParameter(UNITS_PARAM, "metric")
+                        .appendQueryParameter(UNITS_PARAM, unitsStr)
                         .appendQueryParameter(DAYS_PARAM, Integer.toString(numDays))
                         .appendQueryParameter(APPID_PARAM, MY_API_KEY)
                         .build();
@@ -154,10 +156,16 @@ public class ForecastFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_refresh:
-                new NetworkTask().execute("94043");
+                updateWeather();
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void updateWeather() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String locationStr = prefs.getString(getString(R.string.pref_location_key),getString(R.string.pref_location_default));
+        new NetworkTask().execute(locationStr);
     }
 
     private String getReadableDateString(long time) {

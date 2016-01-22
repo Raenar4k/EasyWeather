@@ -1,4 +1,26 @@
 <resources>
     <string name="app_name">Easy Weather</string>
     <string name="action_settings">Settings</string>
+    <string name="title_activity_detail">DetailActivity</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Strings related to Settings -->
+
+
+    <string name="pref_location_title">Location</string>
+    <string name="pref_location_default" translatable="false">94043</string>
+    <string name="pref_location_key">location_preference</string>
+
+    <string name="pref_units_title">Units</string>
+    <string-array name="pref_units_entries">
+        <item>Metric</item>
+        <item>Imperial</item>
+    </string-array>
+    <string-array name="pref_units_values">
+        <item>metric</item>
+        <item>imperial</item>
+    </string-array>
+    <string name="pref_units_default">metric</string>
+    <string name="pref_units_key">units_preference</string>
+
 </resources>

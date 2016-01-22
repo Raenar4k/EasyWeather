@@ -1,6 +1,8 @@
 package com.raenarapps.easyweather;
 
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,12 +34,20 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.ViewHo
         return forecastArray.size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         TextView textView;
 
         public ViewHolder(View v) {
             super(v);
             textView = (TextView) v.findViewById(R.id.list_item_forecast_textview);
+            v.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            Intent intent = new Intent(v.getContext(),DetailActivity.class);
+            intent.putExtra(Intent.EXTRA_TEXT, textView.getText().toString());
+            v.getContext().startActivity(intent);
         }
     }
 }
