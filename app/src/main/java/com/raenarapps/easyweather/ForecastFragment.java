@@ -1,6 +1,5 @@
 package com.raenarapps.easyweather;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -30,7 +29,6 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 
 public class ForecastFragment extends Fragment {
@@ -83,7 +81,7 @@ public class ForecastFragment extends Fragment {
                 final String APPID_PARAM = "APPID";
 
                 String unitsStr = PreferenceManager.getDefaultSharedPreferences(getContext())
-                        .getString(getString(R.string.pref_units_key),getString(R.string.pref_units_default));
+                        .getString(getString(R.string.pref_units_key), getString(R.string.pref_units_default));
 
                 Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
                         .appendQueryParameter(QUERY_PARAM, params[0])
@@ -139,7 +137,7 @@ public class ForecastFragment extends Fragment {
 
         @Override
         protected void onPostExecute(String[] result) {
-            if (result != null){
+            if (result != null) {
                 forecastAdapter.forecastArray.clear();
                 forecastAdapter.forecastArray.addAll(Arrays.asList(result));
                 forecastAdapter.notifyDataSetChanged();
@@ -164,7 +162,7 @@ public class ForecastFragment extends Fragment {
 
     private void updateWeather() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String locationStr = prefs.getString(getString(R.string.pref_location_key),getString(R.string.pref_location_default));
+        String locationStr = prefs.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
         new NetworkTask().execute(locationStr);
     }
 
