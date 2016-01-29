@@ -2,6 +2,7 @@
 package com.raenarapps.easyweather.data;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.test.AndroidTestCase;
@@ -62,7 +63,7 @@ public class TestDb extends AndroidTestCase {
         locationColumnHashSet.add(LocationEntry.COLUMN_CITY_NAME);
         locationColumnHashSet.add(LocationEntry.COLUMN_COORD_LAT);
         locationColumnHashSet.add(LocationEntry.COLUMN_COORD_LONG);
-        locationColumnHashSet.add(LocationEntry.COLUMN_LOCATION_PREF);
+        locationColumnHashSet.add(LocationEntry.LOCATION_SETTING);
 
         int columnNameIndex = c.getColumnIndex("name");
         do {
@@ -76,7 +77,11 @@ public class TestDb extends AndroidTestCase {
     }
 
     public void testLocationTable() {
-        WeatherDbHelper dbhelper = new WeatherDbHelper(mContext);
+        insertNorthPoleLocationValues(mContext);
+    }
+
+    static long insertNorthPoleLocationValues(Context context) {
+        WeatherDbHelper dbhelper = new WeatherDbHelper(context);
         SQLiteDatabase db = dbhelper.getWritableDatabase();
         ContentValues cv = TestUtilities.createNorthPoleLocationValues();
         long id = db.insert(LocationEntry.TABLE_NAME, null, cv);
@@ -89,17 +94,16 @@ public class TestDb extends AndroidTestCase {
         TestUtilities.validateCursor(error, c, cv);
         c.close();
         db.close();
+        return id;
     }
 
     public void testWeatherTable() {
 
         WeatherDbHelper dbhelper = new WeatherDbHelper(mContext);
         SQLiteDatabase db = dbhelper.getWritableDatabase();
-        ContentValues cv = TestUtilities.createNorthPoleLocationValues();
-        long locationID = db.insert(LocationEntry.TABLE_NAME, null, cv);
-        assertTrue("location row was not inserted", locationID != -1);
+        long locationID = insertNorthPoleLocationValues(mContext);
 
-        cv = TestUtilities.createWeatherValues(locationID);
+        ContentValues cv = TestUtilities.createWeatherValues(locationID);
         long weatherID = db.insert(WeatherEntry.TABLE_NAME, null, cv);
         assertTrue("weather row was not inserted", weatherID != -1);
 

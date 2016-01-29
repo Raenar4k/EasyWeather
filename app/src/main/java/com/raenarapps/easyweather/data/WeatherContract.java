@@ -1,14 +1,28 @@
 package com.raenarapps.easyweather.data;
 
+import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.net.Uri;
 import android.provider.BaseColumns;
 
 public class WeatherContract {
+    public static final String CONTENT_AUTHORITY = "com.raenarapps.easyweather";
+    public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
+    public static final String PATH_LOCATION = "location";
+    public static final String PATH_WEATHER = "weather";
 
     public static final class LocationEntry implements BaseColumns {
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_LOCATION).build();
+        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/" +
+                CONTENT_AUTHORITY + "/" + PATH_LOCATION;
+        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" +
+                CONTENT_AUTHORITY + "/" + PATH_LOCATION;
+
         public static final String TABLE_NAME = "location";
 
         //Setting that will be used in OWM query as the location parameter
-        public static final String COLUMN_LOCATION_PREF = "location_pref";
+        public static final String LOCATION_SETTING = "location_pref";
 
         //Coordinates of the location, to be used with maps intent
         public static final String COLUMN_COORD_LAT = "lat";
@@ -16,9 +30,19 @@ public class WeatherContract {
 
         //City name of the location
         public static final String COLUMN_CITY_NAME = "city_name";
+
+        public static Uri buildLocationUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
     }
 
     public static final class WeatherEntry implements BaseColumns {
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_WEATHER).build();
+        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/" +
+                CONTENT_AUTHORITY + "/" + PATH_WEATHER;
+        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" +
+                CONTENT_AUTHORITY + "/" + PATH_WEATHER;
 
         public static final String TABLE_NAME = "weather";
 
@@ -49,5 +73,41 @@ public class WeatherContract {
 
         // Degrees are meteorological degrees (e.g, 0 is north, 180 is south).  Stored as floats
         public static final String COLUMN_DEGREES = "degrees";
+
+        public static Uri buildWeatherUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+
+        public static Uri buildWeatherLocation(String location) {
+            return CONTENT_URI.buildUpon().appendPath(location).build();
+        }
+
+        public static Uri buildWeatherLocationWithStartDate(String location, long startDate) {
+            return CONTENT_URI.buildUpon().appendPath(location)
+                    .appendQueryParameter(COLUMN_DATE, Long.toString(startDate)).build();
+        }
+
+        public static Uri buildWeatherLocationWithDate(String location, long date) {
+            return CONTENT_URI.buildUpon().appendPath(location)
+                    .appendPath(Long.toString(date)).build();
+        }
+
+        public static String getLocationSettingFromUri(Uri uri) {
+            return uri.getPathSegments().get(1);
+
+        }
+
+        public static long getDateFromUri(Uri uri) {
+            return Long.parseLong(uri.getPathSegments().get(2));
+        }
+
+        public static long getStartDateFromUri(Uri uri) {
+            String dateString = uri.getQueryParameter(COLUMN_DATE);
+            if (dateString != null && dateString.length() > 0){
+                return Long.parseLong(dateString);
+            } else {
+                return 0;
+            }
+        }
     }
 }
