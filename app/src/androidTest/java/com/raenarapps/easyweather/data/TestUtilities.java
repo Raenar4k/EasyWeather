@@ -55,7 +55,7 @@ public class TestUtilities extends AndroidTestCase {
 
     static ContentValues createNorthPoleLocationValues() {
         ContentValues testValues = new ContentValues();
-        testValues.put(WeatherContract.LocationEntry.LOCATION_SETTING, TEST_LOCATION);
+        testValues.put(WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING, TEST_LOCATION);
         testValues.put(WeatherContract.LocationEntry.COLUMN_CITY_NAME, "North Pole");
         testValues.put(WeatherContract.LocationEntry.COLUMN_COORD_LAT, 64.7488);
         testValues.put(WeatherContract.LocationEntry.COLUMN_COORD_LONG, -147.353);

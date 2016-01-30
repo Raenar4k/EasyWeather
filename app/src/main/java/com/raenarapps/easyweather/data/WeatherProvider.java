@@ -41,16 +41,16 @@ public class WeatherProvider extends ContentProvider {
 
     private static final String sLocationSettingSelection =
             LocationEntry.TABLE_NAME +
-                    "." + LocationEntry.LOCATION_SETTING + " = ? ";
+                    "." + LocationEntry.COLUMN_LOCATION_SETTING + " = ? ";
 
     private static final String sLocationSettingWithStartDateSelection =
             LocationEntry.TABLE_NAME +
-                    "." + LocationEntry.LOCATION_SETTING + " = ? AND " +
+                    "." + LocationEntry.COLUMN_LOCATION_SETTING + " = ? AND " +
                     WeatherEntry.COLUMN_DATE + " >= ? ";
 
     private static final String sLocationSettingAndDaySelection =
             LocationEntry.TABLE_NAME +
-                    "." + LocationEntry.LOCATION_SETTING + " = ? AND " +
+                    "." + LocationEntry.COLUMN_LOCATION_SETTING + " = ? AND " +
                     WeatherEntry.COLUMN_DATE + " = ? ";
 
     private Cursor getWeatherByLocationSetting(Uri uri, String[] projection, String sortOrder) {
@@ -166,6 +166,14 @@ public class WeatherProvider extends ContentProvider {
         return retCursor;
     }
 
+
+    private void normalizeDate(ContentValues values) {
+        if (values.containsKey(WeatherContract.WeatherEntry.COLUMN_DATE)) {
+            long dateValue = values.getAsLong(WeatherContract.WeatherEntry.COLUMN_DATE);
+            values.put(WeatherContract.WeatherEntry.COLUMN_DATE, WeatherContract.normalizeDate(dateValue));
+        }
+    }
+
     @Override
     public Uri insert(Uri uri, ContentValues values) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
@@ -174,6 +182,7 @@ public class WeatherProvider extends ContentProvider {
 
         switch (match) {
             case WEATHER: {
+                normalizeDate(values);
                 long id = db.insert(WeatherEntry.TABLE_NAME, null, values);
                 if (id != -1)
                     returnUri = WeatherEntry.buildWeatherUri(id);
@@ -230,6 +239,7 @@ public class WeatherProvider extends ContentProvider {
         int match = sUriMatcher.match(uri);
         switch (match) {
             case WEATHER:
+                normalizeDate(values);
                 rowsUpdated = db.update(WeatherEntry.TABLE_NAME, values, selection, selectionArgs);
                 break;
             case LOCATION:
@@ -254,6 +264,7 @@ public class WeatherProvider extends ContentProvider {
                 int returnCount = 0;
                 try {
                     for (ContentValues value : values) {
+                        normalizeDate(value);
                         long id = db.insert(WeatherEntry.TABLE_NAME, null, value);
                         if (id != -1) {
                             returnCount++;

@@ -22,5 +22,7 @@
     </string-array>
     <string name="pref_units_default">metric</string>
     <string name="pref_units_key">units_preference</string>
+    <string name="pref_units_metric">metric</string>
+    <string name="pref_units_imperial">imperial</string>
 
 </resources>

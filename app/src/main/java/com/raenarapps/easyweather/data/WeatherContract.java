@@ -5,6 +5,9 @@ import android.content.ContentUris;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+
 public class WeatherContract {
     public static final String CONTENT_AUTHORITY = "com.raenarapps.easyweather";
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
@@ -22,7 +25,7 @@ public class WeatherContract {
         public static final String TABLE_NAME = "location";
 
         //Setting that will be used in OWM query as the location parameter
-        public static final String LOCATION_SETTING = "location_pref";
+        public static final String COLUMN_LOCATION_SETTING = "location_pref";
 
         //Coordinates of the location, to be used with maps intent
         public static final String COLUMN_COORD_LAT = "lat";
@@ -83,13 +86,15 @@ public class WeatherContract {
         }
 
         public static Uri buildWeatherLocationWithStartDate(String location, long startDate) {
+            long normalizedDate = normalizeDate(startDate);
             return CONTENT_URI.buildUpon().appendPath(location)
-                    .appendQueryParameter(COLUMN_DATE, Long.toString(startDate)).build();
+                    .appendQueryParameter(COLUMN_DATE, Long.toString(normalizedDate)).build();
         }
 
         public static Uri buildWeatherLocationWithDate(String location, long date) {
+            long normalizedDate = normalizeDate(date);
             return CONTENT_URI.buildUpon().appendPath(location)
-                    .appendPath(Long.toString(date)).build();
+                    .appendPath(Long.toString(normalizedDate)).build();
         }
 
         public static String getLocationSettingFromUri(Uri uri) {
@@ -109,5 +114,15 @@ public class WeatherContract {
                 return 0;
             }
         }
+    }
+
+    public static long normalizeDate(long startDate) {
+        GregorianCalendar gc = (GregorianCalendar) GregorianCalendar.getInstance();
+        gc.setTimeInMillis(startDate);
+        gc.set(GregorianCalendar.HOUR_OF_DAY, 0);
+        gc.set(Calendar.MINUTE, 0);
+        gc.set(Calendar.SECOND, 0);
+        gc.set(Calendar.MILLISECOND, 0);
+        return gc.getTimeInMillis();
     }
 }
