@@ -21,6 +21,8 @@ public class MainActivity extends AppCompatActivity {
 
     public static final int INTERNET_REQUEST_CODE = 1;
     private static final String TAG = MainActivity.class.getSimpleName();
+    public static final String FORECAST_FRAGMENT_TAG = ForecastFragment.class.getSimpleName();
+    private String locationSetting;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,7 +31,11 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        getSupportFragmentManager().beginTransaction().add(R.id.fragment_container, new ForecastFragment()).commit();
+        locationSetting = Utility.getPreferredLocation(this);
+
+        getSupportFragmentManager().beginTransaction()
+                .add(R.id.fragment_container, new ForecastFragment(), FORECAST_FRAGMENT_TAG)
+                .commit();
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -57,6 +63,17 @@ public class MainActivity extends AppCompatActivity {
                     finish();
                 }
                 break;
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (Utility.getPreferredLocation(this) != locationSetting) {
+            ForecastFragment forecastFragment = (ForecastFragment) getSupportFragmentManager()
+                    .findFragmentByTag(FORECAST_FRAGMENT_TAG);
+            locationSetting = Utility.getPreferredLocation(this);
+            forecastFragment.updateLocation();
         }
     }
 

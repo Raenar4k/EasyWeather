@@ -1,14 +1,21 @@
-package com.raenarapps.easyweather;
+package com.raenarapps.easyweather.adapter;
 
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CursorAdapter;
 import android.widget.TextView;
+
+import com.raenarapps.easyweather.DetailActivity;
+import com.raenarapps.easyweather.ForecastFragment;
+import com.raenarapps.easyweather.R;
+import com.raenarapps.easyweather.Utility;
+import com.raenarapps.easyweather.data.WeatherContract;
 
 
 public class ForecastCursorAdapter extends RecyclerView.Adapter<ForecastCursorAdapter.ViewHolder> {
@@ -44,6 +51,7 @@ public class ForecastCursorAdapter extends RecyclerView.Adapter<ForecastCursorAd
         mCursor.moveToPosition(position);
         mCursorAdapter.bindView(holder.itemView, mContext, mCursor);
         holder.textView.setText(mForecastString);
+        holder.position = position;
     }
 
     @Override
@@ -53,6 +61,7 @@ public class ForecastCursorAdapter extends RecyclerView.Adapter<ForecastCursorAd
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView textView;
+        int position;
 
         public ViewHolder(View v) {
             super(v);
@@ -63,7 +72,13 @@ public class ForecastCursorAdapter extends RecyclerView.Adapter<ForecastCursorAd
         @Override
         public void onClick(View v) {
             Intent intent = new Intent(v.getContext(), DetailActivity.class);
-            intent.putExtra(Intent.EXTRA_TEXT, textView.getText().toString());
+            if (mCursor!=null){
+                mCursor.moveToPosition(position);
+                Uri uri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
+                        Utility.getPreferredLocation(mContext),
+                        mCursor.getLong(ForecastFragment.COL_WEATHER_DATE));
+                intent.setData(uri);
+            }
             v.getContext().startActivity(intent);
         }
     }
@@ -88,5 +103,6 @@ public class ForecastCursorAdapter extends RecyclerView.Adapter<ForecastCursorAd
     public void swapCursor(Cursor cursor) {
         mCursor = cursor;
         mCursorAdapter.swapCursor(cursor);
+        notifyDataSetChanged();
     }
 }
