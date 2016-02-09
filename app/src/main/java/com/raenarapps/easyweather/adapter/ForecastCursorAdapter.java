@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CursorAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.raenarapps.easyweather.DetailActivity;
@@ -19,15 +20,18 @@ import com.raenarapps.easyweather.data.WeatherContract;
 
 
 public class ForecastCursorAdapter extends RecyclerView.Adapter<ForecastCursorAdapter.ViewHolder> {
-    CursorAdapter mCursorAdapter;
-    Context mContext;
-    Cursor mCursor;
-    String mForecastString;
+    CursorAdapter cursorAdapter;
+    Context context;
+    Cursor cursor;
+    String forecastString;
+    String dateString;
+    String highString;
+    String lowString;
 
     public ForecastCursorAdapter(Context context, Cursor c, int flags) {
-        mContext = context;
-        mCursor = c;
-        mCursorAdapter = new CursorAdapter(context, c, flags) {
+        this.context = context;
+        cursor = c;
+        cursorAdapter = new CursorAdapter(context, c, flags) {
             @Override
             public View newView(Context context, Cursor cursor, ViewGroup parent) {
                 return LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item_forecast, parent, false);
@@ -35,74 +39,76 @@ public class ForecastCursorAdapter extends RecyclerView.Adapter<ForecastCursorAd
 
             @Override
             public void bindView(View view, Context context, Cursor cursor) {
-                mForecastString = convertCursorRowToUXFormat(cursor);
+                forecastString = cursor.getString(ForecastFragment.COL_WEATHER_DESC);
+                long date = cursor.getLong(ForecastFragment.COL_WEATHER_DATE);
+                double high = cursor.getDouble(ForecastFragment.COL_WEATHER_MAX_TEMP);
+                double low = cursor.getDouble(ForecastFragment.COL_WEATHER_MIN_TEMP);
+
+                dateString = Utility.getFriendlyDayString(context, date);
+                boolean isMetric = Utility.isMetric(context);
+                highString = Utility.formatTemperature(high, isMetric);
+                lowString = Utility.formatTemperature(low, isMetric);
             }
         };
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View itemView = mCursorAdapter.newView(mContext, mCursor, parent);
+        View itemView = cursorAdapter.newView(context, cursor, parent);
         return new ViewHolder(itemView);
     }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        mCursor.moveToPosition(position);
-        mCursorAdapter.bindView(holder.itemView, mContext, mCursor);
-        holder.textView.setText(mForecastString);
+        cursor.moveToPosition(position);
+        cursorAdapter.bindView(holder.itemView, context, cursor);
+        holder.forecastDescr.setText(forecastString);
+        holder.forecastDate.setText(dateString);
+        holder.forecastHigh.setText(highString);
+        holder.forecastLow.setText(lowString);
         holder.position = position;
     }
 
     @Override
     public int getItemCount() {
-        return mCursorAdapter.getCount();
+        return cursorAdapter.getCount();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        TextView textView;
+        TextView forecastDescr;
+        TextView forecastDate;
+        TextView forecastHigh;
+        TextView forecastLow;
+        ImageView forecastIcon;
         int position;
 
         public ViewHolder(View v) {
             super(v);
-            textView = (TextView) v.findViewById(R.id.list_item_forecast_textview);
+            forecastDescr = (TextView) v.findViewById(R.id.list_item_forecast_textview);
+            forecastDate = (TextView) v.findViewById(R.id.list_item_date_textview);
+            forecastHigh = (TextView) v.findViewById(R.id.list_item_high_textview);
+            forecastLow = (TextView) v.findViewById(R.id.list_item_low_textview);
+            forecastIcon = (ImageView) v.findViewById(R.id.list_item_icon);
             v.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
             Intent intent = new Intent(v.getContext(), DetailActivity.class);
-            if (mCursor!=null){
-                mCursor.moveToPosition(position);
+            if (cursor != null) {
+                cursor.moveToPosition(position);
                 Uri uri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
-                        Utility.getPreferredLocation(mContext),
-                        mCursor.getLong(ForecastFragment.COL_WEATHER_DATE));
+                        Utility.getPreferredLocation(context),
+                        cursor.getLong(ForecastFragment.COL_WEATHER_DATE));
                 intent.setData(uri);
             }
             v.getContext().startActivity(intent);
         }
     }
 
-    private String formatHighLows(double high, double low) {
-        boolean isMetric = Utility.isMetric(mContext);
-        String highLowStr = Utility.formatTemperature(high, isMetric) + "/" + Utility.formatTemperature(low, isMetric);
-        return highLowStr;
-    }
-
-    private String convertCursorRowToUXFormat(Cursor cursor) {
-
-        String highAndLow = formatHighLows(
-                cursor.getDouble(ForecastFragment.COL_WEATHER_MAX_TEMP),
-                cursor.getDouble(ForecastFragment.COL_WEATHER_MIN_TEMP));
-
-        return Utility.formatDate(cursor.getLong(ForecastFragment.COL_WEATHER_DATE)) +
-                " - " + cursor.getString(ForecastFragment.COL_WEATHER_DESC) +
-                " - " + highAndLow;
-    }
-
     public void swapCursor(Cursor cursor) {
-        mCursor = cursor;
-        mCursorAdapter.swapCursor(cursor);
+        this.cursor = cursor;
+        cursorAdapter.swapCursor(cursor);
         notifyDataSetChanged();
     }
 }

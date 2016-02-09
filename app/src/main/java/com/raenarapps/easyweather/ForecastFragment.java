@@ -77,11 +77,6 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         return rootView;
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        updateWeather();
-    }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
