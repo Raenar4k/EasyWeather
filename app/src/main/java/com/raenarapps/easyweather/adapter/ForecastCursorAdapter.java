@@ -8,7 +8,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -20,48 +19,43 @@ import com.raenarapps.easyweather.data.WeatherContract;
 
 
 public class ForecastCursorAdapter extends RecyclerView.Adapter<ForecastCursorAdapter.ViewHolder> {
-    CursorAdapter cursorAdapter;
     Context context;
     Cursor cursor;
-    String forecastString;
-    String dateString;
-    String highString;
-    String lowString;
 
-    public ForecastCursorAdapter(Context context, Cursor c, int flags) {
+    private static final int VIEW_TYPE_TODAY = 0;
+    private static final int VIEW_TYPE_REGULAR = 1;
+
+    public ForecastCursorAdapter(Context context, Cursor c) {
         this.context = context;
         cursor = c;
-        cursorAdapter = new CursorAdapter(context, c, flags) {
-            @Override
-            public View newView(Context context, Cursor cursor, ViewGroup parent) {
-                return LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item_forecast, parent, false);
-            }
-
-            @Override
-            public void bindView(View view, Context context, Cursor cursor) {
-                forecastString = cursor.getString(ForecastFragment.COL_WEATHER_DESC);
-                long date = cursor.getLong(ForecastFragment.COL_WEATHER_DATE);
-                double high = cursor.getDouble(ForecastFragment.COL_WEATHER_MAX_TEMP);
-                double low = cursor.getDouble(ForecastFragment.COL_WEATHER_MIN_TEMP);
-
-                dateString = Utility.getFriendlyDayString(context, date);
-                boolean isMetric = Utility.isMetric(context);
-                highString = Utility.formatTemperature(high, isMetric);
-                lowString = Utility.formatTemperature(low, isMetric);
-            }
-        };
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View itemView = cursorAdapter.newView(context, cursor, parent);
+        View itemView;
+        if (viewType == VIEW_TYPE_TODAY) {
+            itemView = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.list_item_forecast_today, parent, false);
+        } else {
+            itemView = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.list_item_forecast, parent, false);
+        }
         return new ViewHolder(itemView);
     }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         cursor.moveToPosition(position);
-        cursorAdapter.bindView(holder.itemView, context, cursor);
+        String forecastString = cursor.getString(ForecastFragment.COL_WEATHER_DESC);
+        long date = cursor.getLong(ForecastFragment.COL_WEATHER_DATE);
+        double high = cursor.getDouble(ForecastFragment.COL_WEATHER_MAX_TEMP);
+        double low = cursor.getDouble(ForecastFragment.COL_WEATHER_MIN_TEMP);
+
+        String dateString = Utility.getFriendlyDayString(context, date);
+        boolean isMetric = Utility.isMetric(context);
+        String highString = Utility.formatTemperature(context, high, isMetric);
+        String lowString = Utility.formatTemperature(context, low, isMetric);
+
         holder.forecastDescr.setText(forecastString);
         holder.forecastDate.setText(dateString);
         holder.forecastHigh.setText(highString);
@@ -71,7 +65,20 @@ public class ForecastCursorAdapter extends RecyclerView.Adapter<ForecastCursorAd
 
     @Override
     public int getItemCount() {
-        return cursorAdapter.getCount();
+        if (cursor != null) {
+            return cursor.getCount();
+        } else {
+            return 0;
+        }
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        if (position == 0) {
+            return VIEW_TYPE_TODAY;
+        } else {
+            return VIEW_TYPE_REGULAR;
+        }
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -108,7 +115,6 @@ public class ForecastCursorAdapter extends RecyclerView.Adapter<ForecastCursorAd
 
     public void swapCursor(Cursor cursor) {
         this.cursor = cursor;
-        cursorAdapter.swapCursor(cursor);
         notifyDataSetChanged();
     }
 }

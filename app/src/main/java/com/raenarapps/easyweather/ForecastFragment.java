@@ -72,7 +72,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_forecast);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        forecastAdapter = new ForecastCursorAdapter(getContext(), null, 0);
+        forecastAdapter = new ForecastCursorAdapter(getContext(), null);
         recyclerView.setAdapter(forecastAdapter);
         return rootView;
     }
