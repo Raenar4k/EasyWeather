@@ -55,6 +55,13 @@ public class ForecastCursorAdapter extends RecyclerView.Adapter<ForecastCursorAd
         boolean isMetric = Utility.isMetric(context);
         String highString = Utility.formatTemperature(context, high, isMetric);
         String lowString = Utility.formatTemperature(context, low, isMetric);
+        int conditionId = cursor.getInt(ForecastFragment.COL_WEATHER_CONDITION_ID);
+
+        if (getItemViewType(position) == VIEW_TYPE_TODAY){
+            holder.forecastIcon.setImageResource(Utility.getArtResourceForConditionId(conditionId));
+        } else {
+            holder.forecastIcon.setImageResource(Utility.getIconResourceForConditionId(conditionId));
+        }
 
         holder.forecastDescr.setText(forecastString);
         holder.forecastDate.setText(dateString);

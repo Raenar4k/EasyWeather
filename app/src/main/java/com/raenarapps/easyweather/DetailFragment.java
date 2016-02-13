@@ -38,6 +38,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             WeatherEntry.COLUMN_WIND_SPEED,
             WeatherEntry.COLUMN_DEGREES,
             WeatherEntry.COLUMN_PRESSURE,
+            WeatherEntry.COLUMN_WEATHER_ID
     };
 
     private static final int COL_WEATHER_ID = 0;
@@ -49,6 +50,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     private static final int COL_WEATHER_WIND_SPEED = 6;
     private static final int COL_WEATHER_DEGREES = 7;
     private static final int COL_WEATHER_PRESSURE = 8;
+    private static final int COL_WEATHER_CONDITION_ID = 9;
 
     private TextView dayView;
     private TextView dateView;
@@ -144,10 +146,11 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         double degrees = data.getDouble(COL_WEATHER_DEGREES);
         String windString = Utility.getFormattedWind(context, windSpeed, degrees);
         String pressureString = context.getString(R.string.format_pressure, data.getDouble(COL_WEATHER_PRESSURE));
+        int conditionId = data.getInt(COL_WEATHER_CONDITION_ID);
 
         dayView.setText(Utility.getDayName(context, data.getLong(COL_WEATHER_DATE)));
         dateView.setText(Utility.getFormattedMonthDay(data.getLong(COL_WEATHER_DATE)));
-//        iconView
+        iconView.setImageResource(Utility.getArtResourceForConditionId(conditionId));
         descriptionView.setText(description);
         tempHighView.setText(tempHigh);
         tempLowView.setText(tempLow);

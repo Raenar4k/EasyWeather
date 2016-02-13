@@ -36,7 +36,7 @@
     <string name="humidity_NA">Humidity: N/A</string>
 
     <!-- Wind directions -->
-    <string name="wind_N"></string>
+    <string name="wind_N">N</string>
     <string name="wind_NE">NE</string>
     <string name="wind_E">E</string>
     <string name="wind_SE">SE</string>
