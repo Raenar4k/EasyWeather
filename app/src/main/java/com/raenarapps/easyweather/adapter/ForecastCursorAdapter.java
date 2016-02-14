@@ -1,7 +1,6 @@
 package com.raenarapps.easyweather.adapter;
 
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
@@ -11,7 +10,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.raenarapps.easyweather.DetailActivity;
 import com.raenarapps.easyweather.ForecastFragment;
 import com.raenarapps.easyweather.R;
 import com.raenarapps.easyweather.Utility;
@@ -25,9 +23,16 @@ public class ForecastCursorAdapter extends RecyclerView.Adapter<ForecastCursorAd
     private static final int VIEW_TYPE_TODAY = 0;
     private static final int VIEW_TYPE_REGULAR = 1;
 
-    public ForecastCursorAdapter(Context context, Cursor c) {
+    public interface ViewHolderCallback {
+        void onViewHolderClick(Uri uri);
+    }
+
+    private ViewHolderCallback listener;
+
+    public ForecastCursorAdapter(Context context, Cursor c, ViewHolderCallback listener) {
         this.context = context;
         cursor = c;
+        this.listener = listener;
     }
 
     @Override
@@ -57,7 +62,7 @@ public class ForecastCursorAdapter extends RecyclerView.Adapter<ForecastCursorAd
         String lowString = Utility.formatTemperature(context, low, isMetric);
         int conditionId = cursor.getInt(ForecastFragment.COL_WEATHER_CONDITION_ID);
 
-        if (getItemViewType(position) == VIEW_TYPE_TODAY){
+        if (getItemViewType(position) == VIEW_TYPE_TODAY) {
             holder.forecastIcon.setImageResource(Utility.getArtResourceForConditionId(conditionId));
         } else {
             holder.forecastIcon.setImageResource(Utility.getIconResourceForConditionId(conditionId));
@@ -108,15 +113,13 @@ public class ForecastCursorAdapter extends RecyclerView.Adapter<ForecastCursorAd
 
         @Override
         public void onClick(View v) {
-            Intent intent = new Intent(v.getContext(), DetailActivity.class);
             if (cursor != null) {
                 cursor.moveToPosition(position);
                 Uri uri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
                         Utility.getPreferredLocation(context),
                         cursor.getLong(ForecastFragment.COL_WEATHER_DATE));
-                intent.setData(uri);
+                listener.onViewHolderClick(uri);
             }
-            v.getContext().startActivity(intent);
         }
     }
 

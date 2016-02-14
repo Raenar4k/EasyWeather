@@ -12,6 +12,7 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -24,11 +25,15 @@ import com.raenarapps.easyweather.data.WeatherContract.LocationEntry;
 import com.raenarapps.easyweather.data.WeatherContract.WeatherEntry;
 
 
-public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, ForecastCursorAdapter.ViewHolderCallback {
 
     public static final String TAG = ForecastFragment.class.getSimpleName();
     private ForecastCursorAdapter forecastAdapter;
     public static final int FORECAST_LOADER_ID = 1;
+
+    public interface Callback {
+        public void onItemSelected(Uri uri);
+    }
 
     public static final String[] FORECAST_COLUMNS = {
             WeatherEntry.TABLE_NAME + "." + WeatherEntry._ID,
@@ -72,7 +77,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_forecast);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        forecastAdapter = new ForecastCursorAdapter(getContext(), null);
+        forecastAdapter = new ForecastCursorAdapter(getActivity(), null, this);
         recyclerView.setAdapter(forecastAdapter);
         return rootView;
     }
@@ -123,5 +128,15 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     public void updateLocation() {
         updateWeather();
         getLoaderManager().restartLoader(FORECAST_LOADER_ID, null, this);
+    }
+
+    @Override
+    public void onViewHolderClick(Uri uri) {
+        try {
+            ((Callback) getActivity()).onItemSelected(uri);
+        } catch (ClassCastException e) {
+            Log.e("Class Cast Exception", getActivity().getClass().getSimpleName()
+                    + " must implement ForecastFragment.Callback");
+        }
     }
 }

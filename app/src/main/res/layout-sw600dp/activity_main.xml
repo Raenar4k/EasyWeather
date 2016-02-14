@@ -21,12 +21,7 @@
             app:popupTheme="@style/AppTheme.PopupOverlay" />
 
     </android.support.design.widget.AppBarLayout>
-    <fragment
-        android:id="@+id/fragment_forecast"
-        android:name="com.raenarapps.easyweather.ForecastFragment"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-    </fragment>
+    <include layout="@layout/activity_main_two_pane"/>
 
 
     <android.support.design.widget.FloatingActionButton

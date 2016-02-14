@@ -17,12 +17,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ForecastFragment.Callback {
 
     public static final int INTERNET_REQUEST_CODE = 1;
     private static final String TAG = MainActivity.class.getSimpleName();
-    public static final String FORECAST_FRAGMENT_TAG = ForecastFragment.class.getSimpleName();
+    public static final String DETAIL_FRAGMENT_TAG = DetailFragment.class.getSimpleName();
     private String locationSetting;
+    boolean isTwoPane;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,11 +32,19 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        if (findViewById(R.id.detail_container) != null) {
+            isTwoPane = true;
+            if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.detail_container, new DetailFragment(), DETAIL_FRAGMENT_TAG)
+                        .commit();
+            }
+        } else {
+            isTwoPane = false;
+        }
+
         locationSetting = Utility.getPreferredLocation(this);
 
-        getSupportFragmentManager().beginTransaction()
-                .add(R.id.fragment_container, new ForecastFragment(), FORECAST_FRAGMENT_TAG)
-                .commit();
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -71,9 +80,14 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         if (Utility.getPreferredLocation(this) != locationSetting) {
             ForecastFragment forecastFragment = (ForecastFragment) getSupportFragmentManager()
-                    .findFragmentByTag(FORECAST_FRAGMENT_TAG);
+                    .findFragmentById(R.id.fragment_forecast);
             locationSetting = Utility.getPreferredLocation(this);
             forecastFragment.updateLocation();
+            if (isTwoPane) {
+                DetailFragment detailFragment = (DetailFragment) getSupportFragmentManager()
+                        .findFragmentByTag(DETAIL_FRAGMENT_TAG);
+                detailFragment.updateLocation(locationSetting);
+            }
         }
     }
 
@@ -104,6 +118,23 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         } else {
             Log.d(TAG, "Cant start intent; no map apps installed");
+        }
+    }
+
+    @Override
+    public void onItemSelected(Uri uri) {
+        if (isTwoPane) {
+            Bundle bundle = new Bundle();
+            bundle.putParcelable(DetailFragment.DETAIL_URI, uri);
+            DetailFragment fragment = new DetailFragment();
+            fragment.setArguments(bundle);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.detail_container, fragment, DETAIL_FRAGMENT_TAG)
+                    .commit();
+        } else {
+            Intent intent = new Intent(this, DetailActivity.class);
+            intent.setData(uri);
+            startActivity(intent);
         }
     }
 }

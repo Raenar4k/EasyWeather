@@ -3,6 +3,7 @@ package com.raenarapps.easyweather;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -25,8 +26,10 @@ import com.raenarapps.easyweather.data.WeatherContract.WeatherEntry;
 public class DetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final String TAG = DetailFragment.class.getSimpleName();
     public static final int DETAIL_LOADER = 0;
+    public static final String DETAIL_URI = "DETAIL_URI";
     private ShareActionProvider shareActionProvider;
     private String forecastString;
+    private Uri uri;
 
     public static final String[] FORECAST_COLUMNS = {
             WeatherEntry.TABLE_NAME + "." + WeatherEntry._ID,
@@ -65,6 +68,12 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            uri = bundle.getParcelable(DETAIL_URI);
+        }
+
         View rootView = inflater.inflate(R.layout.content_detail, container, false);
         dayView = (TextView) rootView.findViewById(R.id.detail_day);
         dateView = (TextView) rootView.findViewById(R.id.detail_date);
@@ -121,11 +130,10 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Intent intent = getActivity().getIntent();
-        if (intent == null) {
+        if (uri == null) {
             return null;
         }
-        return new CursorLoader(getContext(), intent.getData(),
+        return new CursorLoader(getContext(), uri,
                 FORECAST_COLUMNS, null, null, null);
     }
 
@@ -166,5 +174,15 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
 
+    }
+
+    public void updateLocation(String locationSetting) {
+        Uri oldUri = uri;
+        if (oldUri != null) {
+            long date = WeatherEntry.getDateFromUri(uri);
+            Uri newUri = WeatherEntry.buildWeatherLocationWithDate(locationSetting, date);
+            uri = newUri;
+            getLoaderManager().restartLoader(DETAIL_LOADER, null, this);
+        }
     }
 }
