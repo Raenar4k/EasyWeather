@@ -13,8 +13,8 @@
         android:theme="@style/AppTheme">
 
         <provider
-            android:authorities= "com.raenarapps.easyweather"
-            android:name=".data.WeatherProvider"/>
+            android:name=".data.WeatherProvider"
+            android:authorities="com.raenarapps.easyweather" />
 
         <activity
             android:name=".MainActivity"
@@ -34,7 +34,13 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.raenarapps.easyweather.MainActivity" />
         </activity>
-        <activity android:name=".SettingsActivity">
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/title_activity_settings"
+            android:parentActivityName=".MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.raenarapps.easyweather.MainActivity" />
         </activity>
     </application>
 
