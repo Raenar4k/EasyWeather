@@ -17,17 +17,19 @@ import com.raenarapps.easyweather.data.WeatherContract;
 
 
 public class ForecastCursorAdapter extends RecyclerView.Adapter<ForecastCursorAdapter.ViewHolder> {
-    Context context;
-    Cursor cursor;
+    private Context context;
+    private Cursor cursor;
 
     private static final int VIEW_TYPE_TODAY = 0;
     private static final int VIEW_TYPE_REGULAR = 1;
+    private boolean useTodayLayout;
 
     public interface ViewHolderCallback {
-        void onViewHolderClick(Uri uri);
+        void onViewHolderClick(Uri uri, int position);
     }
 
     private ViewHolderCallback listener;
+    private int activatedPosition = -1;
 
     public ForecastCursorAdapter(Context context, Cursor c, ViewHolderCallback listener) {
         this.context = context;
@@ -73,6 +75,12 @@ public class ForecastCursorAdapter extends RecyclerView.Adapter<ForecastCursorAd
         holder.forecastHigh.setText(highString);
         holder.forecastLow.setText(lowString);
         holder.position = position;
+
+        if (position == activatedPosition) {
+            holder.itemView.setActivated(true);
+        } else {
+            holder.itemView.setActivated(false);
+        }
     }
 
     @Override
@@ -84,9 +92,18 @@ public class ForecastCursorAdapter extends RecyclerView.Adapter<ForecastCursorAd
         }
     }
 
+    public void setActivatedPosition(int activatedPosition) {
+        this.activatedPosition = activatedPosition;
+        notifyDataSetChanged();
+    }
+
+    public void setUseTodayLayout(boolean useTodayLayout) {
+        this.useTodayLayout = useTodayLayout;
+    }
+
     @Override
     public int getItemViewType(int position) {
-        if (position == 0) {
+        if (position == 0 && useTodayLayout) {
             return VIEW_TYPE_TODAY;
         } else {
             return VIEW_TYPE_REGULAR;
@@ -118,7 +135,9 @@ public class ForecastCursorAdapter extends RecyclerView.Adapter<ForecastCursorAd
                 Uri uri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
                         Utility.getPreferredLocation(context),
                         cursor.getLong(ForecastFragment.COL_WEATHER_DATE));
-                listener.onViewHolderClick(uri);
+                listener.onViewHolderClick(uri, position);
+                activatedPosition = position;
+                notifyDataSetChanged();
             }
         }
     }

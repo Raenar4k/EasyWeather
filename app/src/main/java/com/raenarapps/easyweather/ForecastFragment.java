@@ -28,8 +28,11 @@ import com.raenarapps.easyweather.data.WeatherContract.WeatherEntry;
 public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, ForecastCursorAdapter.ViewHolderCallback {
 
     public static final String TAG = ForecastFragment.class.getSimpleName();
+    public static final String ACTIVATED_POSITION_KEY = "ACTIVATED_POSITION_KEY";
     private ForecastCursorAdapter forecastAdapter;
+    private RecyclerView recyclerView;
     public static final int FORECAST_LOADER_ID = 1;
+    private int activatedPosition = -1;
 
     public interface Callback {
         public void onItemSelected(Uri uri);
@@ -74,11 +77,14 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.content_main, container, false);
-        RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_forecast);
+        recyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_forecast);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
         forecastAdapter = new ForecastCursorAdapter(getActivity(), null, this);
         recyclerView.setAdapter(forecastAdapter);
+
+        if (savedInstanceState != null && savedInstanceState.containsKey(ACTIVATED_POSITION_KEY)) {
+            activatedPosition = savedInstanceState.getInt(ACTIVATED_POSITION_KEY);
+        }
         return rootView;
     }
 
@@ -104,6 +110,10 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         new FetchWeatherTask(getContext()).execute(locationStr);
     }
 
+    public void setIsTwoPane(boolean isTwoPane) {
+        forecastAdapter.setUseTodayLayout(!isTwoPane);
+    }
+
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         String locationSetting = Utility.getPreferredLocation(getActivity());
@@ -118,6 +128,10 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         forecastAdapter.swapCursor(data);
+        if (activatedPosition != -1) {
+            recyclerView.smoothScrollToPosition(activatedPosition);
+            forecastAdapter.setActivatedPosition(activatedPosition);
+        }
     }
 
     @Override
@@ -131,12 +145,21 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
     @Override
-    public void onViewHolderClick(Uri uri) {
+    public void onViewHolderClick(Uri uri, int position) {
         try {
             ((Callback) getActivity()).onItemSelected(uri);
+            activatedPosition = position;
         } catch (ClassCastException e) {
             Log.e("Class Cast Exception", getActivity().getClass().getSimpleName()
                     + " must implement ForecastFragment.Callback");
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (activatedPosition != -1) {
+            outState.putInt(ACTIVATED_POSITION_KEY, activatedPosition);
         }
     }
 }

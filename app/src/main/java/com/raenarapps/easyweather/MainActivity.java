@@ -43,6 +43,10 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
             isTwoPane = false;
         }
 
+        ForecastFragment forecastFragment = (ForecastFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.fragment_forecast);
+        forecastFragment.setIsTwoPane(isTwoPane);
+
         locationSetting = Utility.getPreferredLocation(this);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
