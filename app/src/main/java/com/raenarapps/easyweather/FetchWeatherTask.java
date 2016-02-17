@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Locale;
 import java.util.Vector;
 
 public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
@@ -85,7 +86,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
         final String OWM_MAX = "max";
         final String OWM_MIN = "min";
         final String OWM_WEATHER = "weather";
-        final String OWM_DESCRIPTION = "main";
+        final String OWM_DESCRIPTION = "description";
         final String OWM_WEATHER_ID = "id";
         final String OWM_DATE_TIME = "dt";
 
@@ -193,13 +194,22 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
             final String UNITS_PARAM = "units";
             final String DAYS_PARAM = "cnt";
             final String APPID_PARAM = "APPID";
+            final String LANGUAGE_PARAM = "lang";
 
+            String lang;
+            String currentLanguage = Locale.getDefault().getLanguage();
+            if (currentLanguage.equals("ru")){
+                lang = "ru";
+            } else{
+                lang = "en";
+            }
             Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
                     .appendQueryParameter(QUERY_PARAM, params[0])
                     .appendQueryParameter(FORMAT_PARAM, format)
                     .appendQueryParameter(UNITS_PARAM, units)
                     .appendQueryParameter(DAYS_PARAM, Integer.toString(numDays))
                     .appendQueryParameter(APPID_PARAM, MY_API_KEY)
+                    .appendQueryParameter(LANGUAGE_PARAM, lang)
                     .build();
 
             URL url = new URL(builtUri.toString());

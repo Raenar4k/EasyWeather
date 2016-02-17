@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="http://schemas.android.com/tools">
+    <string name="app_name">Easy Weather</string>
+    <string name="action_settings">Настройки</string>
+    <string name="format_humidity">Влажность: <xliff:g id="humidity">%1.0f</xliff:g> %%</string>
+    <string name="format_pressure">Давление: <xliff:g id="pressure">%1.0f</xliff:g> гПа</string>
+    <string name="format_wind_kmh">Ветер: <xliff:g id="speed">%1.0f</xliff:g> км/ч <xliff:g id="direction">%s</xliff:g></string>
+    <string name="format_wind_mph">Ветер: <xliff:g id="speed">%1.0f</xliff:g> миль/ч <xliff:g id="direction">%s</xliff:g></string>
+    <string name="humidity_NA">Влажность: нет данных</string>
+    <string name="pref_location_title">Местоположение</string>
+    <string name="pref_units_title">Система измерения</string>
+    <string name="title_activity_settings">Настройки</string>
+    <string name="today">Сегодня</string>
+    <string name="tomorrow">Завтра</string>
+    <string name="wind_E">В</string>
+    <string name="wind_N">С</string>
+    <string name="wind_NE">СВ</string>
+    <string name="wind_NW">СЗ</string>
+    <string name="wind_S">Ю</string>
+    <string name="wind_SE">ЮВ</string>
+    <string name="wind_SW">ЮЗ</string>
+    <string name="wind_W">З</string>
+    <string-array name="pref_units_entries">
+        <item>Международная система (СИ)</item>
+        <item>Английская система</item>
+    </string-array>
+</resources>
