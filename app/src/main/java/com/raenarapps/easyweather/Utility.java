@@ -42,7 +42,7 @@ public class Utility {
         } else if (diffInDays > 0 && diffInDays < 7) {
             return getDayName(context, dateInMillis);
         } else {
-            SimpleDateFormat shortenedDateFormat = new SimpleDateFormat("EEEE d MMMM");
+            SimpleDateFormat shortenedDateFormat = new SimpleDateFormat("EEE d MMM");
             return shortenedDateFormat.format(dateInMillis);
         }
     }
