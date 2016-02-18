@@ -42,6 +42,8 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.raenarapps.easyweather.MainActivity" />
         </activity>
+
+        <service android:name=".WeatherService" />
     </application>
 
 </manifest>

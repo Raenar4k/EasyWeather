@@ -1,6 +1,7 @@
 package com.raenarapps.easyweather;
 
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
@@ -107,7 +108,9 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     private void updateWeather() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String locationStr = prefs.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
-        new FetchWeatherTask(getContext()).execute(locationStr);
+        Intent intent = new Intent(getActivity(), WeatherService.class);
+        intent.putExtra(WeatherService.LOCATION_KEY, locationStr);
+        getActivity().startService(intent);
     }
 
     public void setIsTwoPane(boolean isTwoPane) {
