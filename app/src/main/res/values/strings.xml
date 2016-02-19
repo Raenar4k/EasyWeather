@@ -44,4 +44,6 @@
     <string name="wind_SW">SW</string>
     <string name="wind_W">W</string>
     <string name="wind_NW">NW</string>
+    <string name="sync_account_type">easyweather.raenarapps.com</string>
+    <string name="content_authority">com.raenarapps.easyweather</string>
 </resources>

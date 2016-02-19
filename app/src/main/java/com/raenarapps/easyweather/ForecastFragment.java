@@ -1,11 +1,15 @@
 package com.raenarapps.easyweather;
 
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -24,6 +28,7 @@ import android.view.ViewGroup;
 import com.raenarapps.easyweather.adapter.ForecastCursorAdapter;
 import com.raenarapps.easyweather.data.WeatherContract.LocationEntry;
 import com.raenarapps.easyweather.data.WeatherContract.WeatherEntry;
+import com.raenarapps.easyweather.sync.WeatherSyncAdapter;
 
 
 public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, ForecastCursorAdapter.ViewHolderCallback {
@@ -106,11 +111,15 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
     private void updateWeather() {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String locationStr = prefs.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
-        Intent intent = new Intent(getActivity(), WeatherService.class);
-        intent.putExtra(WeatherService.LOCATION_KEY, locationStr);
-        getActivity().startService(intent);
+        WeatherSyncAdapter.syncImmediately(getContext());
+//        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+//        String locationStr = prefs.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
+//        Intent intent = new Intent(getActivity(), WeatherService.class);
+//        intent.putExtra(WeatherService.LOCATION_KEY, locationStr);
+//        getActivity().startService(intent);
+//
+
+
     }
 
     public void setIsTwoPane(boolean isTwoPane) {
