@@ -17,6 +17,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.raenarapps.easyweather.sync.WeatherSyncAdapter;
+
 public class MainActivity extends AppCompatActivity implements ForecastFragment.Callback {
 
     public static final int INTERNET_REQUEST_CODE = 1;
@@ -62,6 +64,8 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET}, INTERNET_REQUEST_CODE);
         }
+
+        WeatherSyncAdapter.initializeSyncAdapter(this);
     }
 
     @Override
