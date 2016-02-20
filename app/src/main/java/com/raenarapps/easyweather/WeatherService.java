@@ -16,6 +16,7 @@ import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 
 import com.raenarapps.easyweather.data.WeatherContract;
+import com.raenarapps.easyweather.data.WeatherContract.LocationEntry;
 import com.raenarapps.easyweather.data.WeatherContract.WeatherEntry;
 
 import org.json.JSONArray;
@@ -222,6 +223,7 @@ public class WeatherService extends IntentService {
                 ContentValues[] arrayCV = new ContentValues[cVVector.size()];
                 cVVector.toArray(arrayCV);
                 inserted = this.getContentResolver().bulkInsert(WeatherEntry.CONTENT_URI, arrayCV);
+                cleanUpOldData(locationId);
             }
 
             Log.d(LOG_TAG, "Done fetching weather. " + inserted + " Inserted");
@@ -233,6 +235,15 @@ public class WeatherService extends IntentService {
             Log.e(LOG_TAG, e.getMessage(), e);
             e.printStackTrace();
         }
+    }
+
+    private void cleanUpOldData(long locationId) {
+        int deleted;
+        long currentDateInMillis = WeatherContract.normalizeDate(System.currentTimeMillis());
+        String selection = WeatherEntry.COLUMN_DATE + " < ? AND " + WeatherEntry.COLUMN_LOC_KEY + " == ?";
+        String[] selectionArgs = {Long.toString(currentDateInMillis), Long.toString(locationId)};
+        deleted = this.getContentResolver().delete(WeatherEntry.CONTENT_URI, selection, selectionArgs );
+        Log.d(LOG_TAG, "Cleaned up. " + deleted + " Deleted");
     }
 
     private void showNotification() {
@@ -294,20 +305,20 @@ public class WeatherService extends IntentService {
     public long addLocation(String locationSetting, String cityName, double lat, double lon) {
 
         Cursor cursor = this.getContentResolver()
-                .query(WeatherContract.LocationEntry.CONTENT_URI, null, WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING + " = ?",
+                .query(LocationEntry.CONTENT_URI, null, LocationEntry.COLUMN_LOCATION_SETTING + " = ?",
                         new String[]{locationSetting}, null);
         long id;
         if (cursor.getCount() != 0) {
-            int idIndex = cursor.getColumnIndex(WeatherContract.LocationEntry._ID);
+            int idIndex = cursor.getColumnIndex(LocationEntry._ID);
             cursor.moveToFirst();
             id = cursor.getLong(idIndex);
         } else {
             ContentValues cv = new ContentValues();
-            cv.put(WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING, locationSetting);
-            cv.put(WeatherContract.LocationEntry.COLUMN_CITY_NAME, cityName);
-            cv.put(WeatherContract.LocationEntry.COLUMN_COORD_LAT, lat);
-            cv.put(WeatherContract.LocationEntry.COLUMN_COORD_LONG, lon);
-            Uri uri = this.getContentResolver().insert(WeatherContract.LocationEntry.CONTENT_URI, cv);
+            cv.put(LocationEntry.COLUMN_LOCATION_SETTING, locationSetting);
+            cv.put(LocationEntry.COLUMN_CITY_NAME, cityName);
+            cv.put(LocationEntry.COLUMN_COORD_LAT, lat);
+            cv.put(LocationEntry.COLUMN_COORD_LONG, lon);
+            Uri uri = this.getContentResolver().insert(LocationEntry.CONTENT_URI, cv);
             id = ContentUris.parseId(uri);
         }
         cursor.close();
