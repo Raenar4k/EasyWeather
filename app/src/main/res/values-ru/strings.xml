@@ -24,4 +24,6 @@
         <item>Международная система (СИ)</item>
         <item>Английская система</item>
     </string-array>
+    <string name="pref_notifications_title">Показывать уведомления</string>
+    <string name="format_notification">Сегодня: <xliff:g id="condition">%s</xliff:g> <xliff:g id="high">%1.0f</xliff:g>\u00B0 / <xliff:g id="low">%1.0f</xliff:g>\u00B0</string>
 </resources>
