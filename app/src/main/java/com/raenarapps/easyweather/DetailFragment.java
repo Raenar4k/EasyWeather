@@ -118,15 +118,6 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         return shareIntent;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_settings:
-                startActivity(new Intent(getActivity(), SettingsActivity.class));
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {

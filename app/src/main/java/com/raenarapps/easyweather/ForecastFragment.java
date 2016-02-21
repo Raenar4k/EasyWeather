@@ -36,7 +36,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     private int activatedPosition = -1;
 
     public interface Callback {
-        public void onItemSelected(Uri uri);
+        void onItemSelected(Uri uri);
     }
 
     public static final String[] FORECAST_COLUMNS = {
@@ -101,6 +101,9 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
             case R.id.action_refresh:
                 updateWeather();
                 return true;
+            case R.id.action_map:
+                openLocationInMap();
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -111,6 +114,21 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         Intent intent = new Intent(getActivity(), WeatherService.class);
         intent.putExtra(WeatherService.LOCATION_KEY, locationStr);
         getActivity().startService(intent);
+    }
+
+    private void openLocationInMap() {
+        Cursor c = forecastAdapter.getCursor();
+        String locationStr = c.getString(COL_LOCATION_LOCATION_SETTING);
+        double lat = c.getDouble(COL_LOCATION_LAT);
+        double lon = c.getDouble(COL_LOCATION_LONG);
+        String geoString = "geo:" + lat + "," + lon + "?z=11";
+        Intent intent = new Intent(Intent.ACTION_VIEW,
+                Uri.parse(geoString));
+        if (intent.resolveActivity(getContext().getPackageManager()) != null) {
+            startActivity(intent);
+        } else {
+            Log.d(TAG, "Cant start intent; no map apps installed");
+        }
     }
 
     public void setIsTwoPane(boolean isTwoPane) {

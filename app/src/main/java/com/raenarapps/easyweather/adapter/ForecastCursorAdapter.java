@@ -92,6 +92,10 @@ public class ForecastCursorAdapter extends RecyclerView.Adapter<ForecastCursorAd
         }
     }
 
+    public Cursor getCursor() {
+        return cursor;
+    }
+
     public void setActivatedPosition(int activatedPosition) {
         this.activatedPosition = activatedPosition;
         notifyDataSetChanged();

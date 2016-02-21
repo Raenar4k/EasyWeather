@@ -1,8 +1,12 @@
 <resources xmlns:xliff="http://schemas.android.com/tools">
     <string name="app_name">Easy Weather</string>
-    <string name="action_settings">Settings</string>
     <string name="title_activity_detail" translatable="false">DetailActivity</string>
     <string name="title_activity_settings">Settings</string>
+
+    <!--Menu-->
+    <string name="action_settings">Settings</string>
+    <string name="action_view_map">View on map</string>
+    <string name="action_refresh">Refresh</string>
 
     <!-- Strings related to Settings -->
     <string name="pref_location_title">Location</string>

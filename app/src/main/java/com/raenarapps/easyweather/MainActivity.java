@@ -107,22 +107,8 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
             case R.id.action_settings:
                 startActivity(new Intent(this, SettingsActivity.class));
                 return true;
-            case R.id.action_map:
-                openLocationInMap();
-                return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    private void openLocationInMap() {
-        String locationStr = PreferenceManager.getDefaultSharedPreferences(this)
-                .getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + locationStr));
-        if (intent.resolveActivity(getPackageManager()) != null) {
-            startActivity(intent);
-        } else {
-            Log.d(TAG, "Cant start intent; no map apps installed");
-        }
     }
 
     @Override
