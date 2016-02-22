@@ -121,7 +121,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         String locationStr = c.getString(COL_LOCATION_LOCATION_SETTING);
         double lat = c.getDouble(COL_LOCATION_LAT);
         double lon = c.getDouble(COL_LOCATION_LONG);
-        String geoString = "geo:" + lat + "," + lon + "?z=11";
+        String geoString = "geo:" + lat + "," + lon + "?z=14";
         Intent intent = new Intent(Intent.ACTION_VIEW,
                 Uri.parse(geoString));
         if (intent.resolveActivity(getContext().getPackageManager()) != null) {

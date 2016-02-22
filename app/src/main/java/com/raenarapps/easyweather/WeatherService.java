@@ -18,19 +18,26 @@ import android.util.Log;
 import com.raenarapps.easyweather.data.WeatherContract;
 import com.raenarapps.easyweather.data.WeatherContract.LocationEntry;
 import com.raenarapps.easyweather.data.WeatherContract.WeatherEntry;
+import com.raenarapps.easyweather.pojo.City;
+import com.raenarapps.easyweather.pojo.Coord;
+import com.raenarapps.easyweather.pojo.Forecast;
+import com.raenarapps.easyweather.pojo.OWMModel;
+import com.raenarapps.easyweather.pojo.Temp;
+import com.raenarapps.easyweather.pojo.Weather;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Vector;
+
+import retrofit2.Call;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.http.GET;
+import retrofit2.http.QueryMap;
 
 public class WeatherService extends IntentService {
     private static final String SERVICE_NAME = WeatherService.class.getSimpleName();
@@ -44,196 +51,136 @@ public class WeatherService extends IntentService {
         super(SERVICE_NAME);
     }
 
+    public interface OWMService {
+        @GET("daily")
+        Call<OWMModel> getOWMDailyResponse(@QueryMap Map<String, String> options);
+    }
+
     @Override
     protected void onHandleIntent(Intent intent) {
         String locationQuery;
         if (intent != null && intent.hasExtra(LOCATION_KEY)) {
             locationQuery = intent.getStringExtra(LOCATION_KEY);
 
-            HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
-            String forecastJsonStr = null;
-
             String format = "json";
             String units = "metric";
             int numDays = 14;
 
+            final String FORECAST_BASE_URL =
+                    "http://api.openweathermap.org/data/2.5/forecast/";
+            final String QUERY_PARAM = "q";
+            final String FORMAT_PARAM = "mode";
+            final String UNITS_PARAM = "units";
+            final String DAYS_PARAM = "cnt";
+            final String APPID_PARAM = "APPID";
+            final String LANGUAGE_PARAM = "lang";
+
+            String lang;
+            String currentLanguage = Locale.getDefault().getLanguage();
+            if (currentLanguage.equals("ru")) {
+                lang = "ru";
+            } else {
+                lang = "en";
+            }
+            HashMap<String, String> options = new HashMap<String, String>();
+            options.put(QUERY_PARAM, locationQuery);
+            options.put(FORMAT_PARAM, format);
+            options.put(UNITS_PARAM, units);
+            options.put(DAYS_PARAM, Integer.toString(numDays));
+            options.put(APPID_PARAM, MY_API_KEY);
+            options.put(LANGUAGE_PARAM, lang);
+
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl(FORECAST_BASE_URL)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+
+            OWMService service = retrofit.create(OWMService.class);
+            Call<OWMModel> call = service.getOWMDailyResponse(options);
             try {
+                Response<OWMModel> response = call.execute();
+                OWMModel model = response.body();
+                getWeatherDataFromModel(model, locationQuery);
 
-                final String FORECAST_BASE_URL =
-                        "http://api.openweathermap.org/data/2.5/forecast/daily?";
-                final String QUERY_PARAM = "q";
-                final String FORMAT_PARAM = "mode";
-                final String UNITS_PARAM = "units";
-                final String DAYS_PARAM = "cnt";
-                final String APPID_PARAM = "APPID";
-                final String LANGUAGE_PARAM = "lang";
-
-                String lang;
-                String currentLanguage = Locale.getDefault().getLanguage();
-                if (currentLanguage.equals("ru")) {
-                    lang = "ru";
-                } else {
-                    lang = "en";
-                }
-                Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
-                        .appendQueryParameter(QUERY_PARAM, locationQuery)
-                        .appendQueryParameter(FORMAT_PARAM, format)
-                        .appendQueryParameter(UNITS_PARAM, units)
-                        .appendQueryParameter(DAYS_PARAM, Integer.toString(numDays))
-                        .appendQueryParameter(APPID_PARAM, MY_API_KEY)
-                        .appendQueryParameter(LANGUAGE_PARAM, lang)
-                        .build();
-
-                URL url = new URL(builtUri.toString());
-
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.connect();
-
-                InputStream inputStream = urlConnection.getInputStream();
-                StringBuffer buffer = new StringBuffer();
-                if (inputStream != null) {
-                    reader = new BufferedReader(new InputStreamReader(inputStream));
-
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        buffer.append(line + "\n");
-                    }
-
-                    if (buffer.length() != 0) {
-                        forecastJsonStr = buffer.toString();
-                        getWeatherDataFromJson(forecastJsonStr, locationQuery);
-                    }
-                }
             } catch (IOException e) {
-                Log.e(LOG_TAG, "Error ", e);
-            } catch (JSONException e) {
-                Log.e(LOG_TAG, e.getMessage(), e);
                 e.printStackTrace();
-            } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        Log.e(LOG_TAG, "Error closing stream", e);
-                    }
-                }
             }
         }
     }
 
-    private void getWeatherDataFromJson(String forecastJsonStr,
-                                        String locationSetting)
-            throws JSONException {
+    private void getWeatherDataFromModel(OWMModel model,
+                                         String locationSetting) {
 
-        // Location information in "city" object
-        final String OWM_CITY = "city";
-        final String OWM_CITY_NAME = "name";
+        List<Forecast> forecastList = model.getList();
 
-        // Coordinates are in "coord" object
-        final String OWM_COORD = "coord";
-        final String OWM_LATITUDE = "lat";
-        final String OWM_LONGITUDE = "lon";
+        City city = model.getCity();
+        String cityName = city.getName();
 
-        // Weather information.  Each day's forecast info is an element of the "list" array.
-        final String OWM_LIST = "list";
-        final String OWM_PRESSURE = "pressure";
-        final String OWM_HUMIDITY = "humidity";
-        final String OWM_WINDSPEED = "speed";
-        final String OWM_WIND_DIRECTION = "deg";
+        Coord coord = city.getCoord();
+        double cityLatitude = coord.getLat();
+        double cityLongitude = coord.getLon();
 
-        // All temperatures are children of the "temp" object.
-        final String OWM_TEMPERATURE = "temp";
-        final String OWM_MAX = "max";
-        final String OWM_MIN = "min";
-        final String OWM_WEATHER = "weather";
-        final String OWM_DESCRIPTION = "description";
-        final String OWM_WEATHER_ID = "id";
-        final String OWM_DATE_TIME = "dt";
+        long locationId = addLocation(locationSetting, cityName, cityLatitude, cityLongitude);
 
+        Vector<ContentValues> cVVector = new Vector<ContentValues>(forecastList.size());
 
-        try {
-            JSONObject forecastJson = new JSONObject(forecastJsonStr);
-            JSONArray weatherArray = forecastJson.getJSONArray(OWM_LIST);
+        for (int i = 0; i < forecastList.size(); i++) {
+            long dateTime;
+            double pressure;
+            int humidity;
+            double windSpeed;
+            double windDirection;
 
-            JSONObject cityJson = forecastJson.getJSONObject(OWM_CITY);
-            String cityName = cityJson.getString(OWM_CITY_NAME);
+            double high;
+            double low;
 
-            JSONObject cityCoord = cityJson.getJSONObject(OWM_COORD);
-            double cityLatitude = cityCoord.getDouble(OWM_LATITUDE);
-            double cityLongitude = cityCoord.getDouble(OWM_LONGITUDE);
+            String description;
+            int weatherId;
 
-            long locationId = addLocation(locationSetting, cityName, cityLatitude, cityLongitude);
+            Forecast dayForecast = forecastList.get(i);
 
-            Vector<ContentValues> cVVector = new Vector<ContentValues>(weatherArray.length());
+            long unixTime = dayForecast.getDt();
+            dateTime = unixTime * 1000;
 
-            for (int i = 0; i < weatherArray.length(); i++) {
-                long dateTime;
-                double pressure;
-                int humidity;
-                double windSpeed;
-                double windDirection;
+            pressure = dayForecast.getPressure();
+            humidity = dayForecast.getHumidity();
+            windSpeed = dayForecast.getSpeed();
+            windDirection = dayForecast.getDeg();
 
-                double high;
-                double low;
+            Weather weatherObject = dayForecast.getWeather().get(0);
+            description = weatherObject.getDescription();
+            weatherId = weatherObject.getId();
 
-                String description;
-                int weatherId;
+            Temp temperatureObject = dayForecast.getTemp();
+            high = temperatureObject.getMax();
+            low = temperatureObject.getMin();
 
-                JSONObject dayForecast = weatherArray.getJSONObject(i);
+            ContentValues weatherValues = new ContentValues();
 
-                long unixTime = dayForecast.getLong(OWM_DATE_TIME);
-                dateTime = unixTime * 1000;
+            weatherValues.put(WeatherEntry.COLUMN_LOC_KEY, locationId);
+            weatherValues.put(WeatherEntry.COLUMN_DATE, dateTime);
+            weatherValues.put(WeatherEntry.COLUMN_HUMIDITY, humidity);
+            weatherValues.put(WeatherEntry.COLUMN_PRESSURE, pressure);
+            weatherValues.put(WeatherEntry.COLUMN_WIND_SPEED, windSpeed);
+            weatherValues.put(WeatherEntry.COLUMN_DEGREES, windDirection);
+            weatherValues.put(WeatherEntry.COLUMN_MAX_TEMP, high);
+            weatherValues.put(WeatherEntry.COLUMN_MIN_TEMP, low);
+            weatherValues.put(WeatherEntry.COLUMN_SHORT_DESC, description);
+            weatherValues.put(WeatherEntry.COLUMN_WEATHER_ID, weatherId);
 
-                pressure = dayForecast.getDouble(OWM_PRESSURE);
-                humidity = dayForecast.getInt(OWM_HUMIDITY);
-                windSpeed = dayForecast.getDouble(OWM_WINDSPEED);
-                windDirection = dayForecast.getDouble(OWM_WIND_DIRECTION);
+            cVVector.add(weatherValues);
+        }
+        int inserted = 0;
+        if (cVVector.size() > 0) {
+            ContentValues[] arrayCV = new ContentValues[cVVector.size()];
+            cVVector.toArray(arrayCV);
+            inserted = this.getContentResolver().bulkInsert(WeatherEntry.CONTENT_URI, arrayCV);
+            cleanUpOldData(locationId);
+        }
 
-                JSONObject weatherObject =
-                        dayForecast.getJSONArray(OWM_WEATHER).getJSONObject(0);
-                description = weatherObject.getString(OWM_DESCRIPTION);
-                weatherId = weatherObject.getInt(OWM_WEATHER_ID);
-
-                JSONObject temperatureObject = dayForecast.getJSONObject(OWM_TEMPERATURE);
-                high = temperatureObject.getDouble(OWM_MAX);
-                low = temperatureObject.getDouble(OWM_MIN);
-
-                ContentValues weatherValues = new ContentValues();
-
-                weatherValues.put(WeatherEntry.COLUMN_LOC_KEY, locationId);
-                weatherValues.put(WeatherEntry.COLUMN_DATE, dateTime);
-                weatherValues.put(WeatherEntry.COLUMN_HUMIDITY, humidity);
-                weatherValues.put(WeatherEntry.COLUMN_PRESSURE, pressure);
-                weatherValues.put(WeatherEntry.COLUMN_WIND_SPEED, windSpeed);
-                weatherValues.put(WeatherEntry.COLUMN_DEGREES, windDirection);
-                weatherValues.put(WeatherEntry.COLUMN_MAX_TEMP, high);
-                weatherValues.put(WeatherEntry.COLUMN_MIN_TEMP, low);
-                weatherValues.put(WeatherEntry.COLUMN_SHORT_DESC, description);
-                weatherValues.put(WeatherEntry.COLUMN_WEATHER_ID, weatherId);
-
-                cVVector.add(weatherValues);
-            }
-            int inserted = 0;
-            if (cVVector.size() > 0) {
-                ContentValues[] arrayCV = new ContentValues[cVVector.size()];
-                cVVector.toArray(arrayCV);
-                inserted = this.getContentResolver().bulkInsert(WeatherEntry.CONTENT_URI, arrayCV);
-                cleanUpOldData(locationId);
-            }
-
-            Log.d(LOG_TAG, "Done fetching weather. " + inserted + " Inserted");
-            if (Utility.areNotificationsEnabled(this)) {
-                showNotification();
-            }
-
-        } catch (JSONException e) {
-            Log.e(LOG_TAG, e.getMessage(), e);
-            e.printStackTrace();
+        Log.d(LOG_TAG, "Done fetching weather. " + inserted + " Inserted");
+        if (Utility.areNotificationsEnabled(this)) {
+            showNotification();
         }
     }
 
@@ -242,14 +189,14 @@ public class WeatherService extends IntentService {
         long currentDateInMillis = WeatherContract.normalizeDate(System.currentTimeMillis());
         String selection = WeatherEntry.COLUMN_DATE + " < ? AND " + WeatherEntry.COLUMN_LOC_KEY + " == ?";
         String[] selectionArgs = {Long.toString(currentDateInMillis), Long.toString(locationId)};
-        deleted = this.getContentResolver().delete(WeatherEntry.CONTENT_URI, selection, selectionArgs );
+        deleted = this.getContentResolver().delete(WeatherEntry.CONTENT_URI, selection, selectionArgs);
         Log.d(LOG_TAG, "Cleaned up. " + deleted + " Deleted");
     }
 
     private void showNotification() {
         String todayForecast = getTodayForecastString(this);
         int weatherID = getTodayForecastWeatherID(this);
-        Intent intent = new Intent(this,MainActivity.class);
+        Intent intent = new Intent(this, MainActivity.class);
         TaskStackBuilder.create(this).addNextIntent(intent);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         Notification notification = new NotificationCompat.Builder(this)
