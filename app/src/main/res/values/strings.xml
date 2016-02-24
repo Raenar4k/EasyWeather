@@ -18,7 +18,7 @@
         <item>Metric</item>
         <item>Imperial</item>
     </string-array>
-    <string-array name="pref_units_values">
+    <string-array name="pref_units_values" translatable="false" >
         <item>metric</item>
         <item>imperial</item>
     </string-array>

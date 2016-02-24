@@ -9,15 +9,25 @@ import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocomplete;
+import com.raenarapps.easyweather.settings.PlacesPreference;
 
 public class SettingsActivity extends AppCompatActivity {
+
+    private static final String TAG = SettingsActivity.class.getSimpleName();
+    private GeneralPreferencesFragment fragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
+        fragment = new GeneralPreferencesFragment();
         getFragmentManager().beginTransaction()
-                .replace(R.id.container, new GeneralPreferencesFragment()).commit();
+                .replace(R.id.container, fragment).commit();
     }
 
     public static class GeneralPreferencesFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener {
@@ -25,8 +35,11 @@ public class SettingsActivity extends AppCompatActivity {
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.pref_general);
-            bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_location_key)));
+            PlacesPreference placesPreference = (PlacesPreference)
+                    findPreference(getString(R.string.pref_location_key));
+            bindPreferenceSummaryToValue(placesPreference);
             bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_units_key)));
+            placesPreference.setActivity(getActivity());
         }
 
         private void bindPreferenceSummaryToValue(Preference preference) {
@@ -58,6 +71,28 @@ public class SettingsActivity extends AppCompatActivity {
                 preference.setSummary(stringValue);
             }
             return true;
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == PlacesPreference.PLACE_AUTOCOMPLETE_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                PlacesPreference placesPreference = (PlacesPreference)
+                        fragment.findPreference(getString(R.string.pref_location_key));
+                Place place = PlaceAutocomplete.getPlace(this, data);
+                String newLocationPref = place.getAddress().toString();
+                Log.d(TAG, "new location preference =" + newLocationPref);
+                PreferenceManager.getDefaultSharedPreferences(this).edit()
+                        .putString(placesPreference.getKey(), newLocationPref)
+                        .commit();
+                placesPreference.setDefaultValue(newLocationPref);
+                placesPreference.setSummary(newLocationPref);
+
+            } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
+                Status status = PlaceAutocomplete.getStatus(this, data);
+                Log.i(TAG, status.getStatusMessage());
+            }
         }
     }
 
