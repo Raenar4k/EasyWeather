@@ -1,7 +1,11 @@
 package com.raenarapps.easyweather;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 
 import java.text.SimpleDateFormat;
@@ -26,6 +30,15 @@ public class Utility {
     public static boolean areNotificationsEnabled(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         return prefs.getBoolean(context.getString(R.string.pref_notifications_key), false);
+    }
+
+    public static void setUpRepeatingAlarm(Context context) {
+        AlarmManager alarmMgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(context, WeatherService.AlarmReceiver.class);
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
+        long interval = AlarmManager.INTERVAL_HOUR * 3;
+        alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
+                SystemClock.elapsedRealtime() + interval, interval, alarmIntent);
     }
 
     public static String formatTemperature(Context context, double temperature, boolean isMetric) {

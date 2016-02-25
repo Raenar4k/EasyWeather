@@ -106,6 +106,7 @@ public class SettingsActivity extends AppCompatActivity {
                 placesPreference.setSummary(newLocationPref);
 
                 if (getIntent().hasExtra(Intent.EXTRA_TEXT)) {
+                    Utility.setUpRepeatingAlarm(this);
                     this.finish();
                 }
             } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {

@@ -5,6 +5,7 @@ import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -270,6 +271,27 @@ public class WeatherService extends IntentService {
         }
         cursor.close();
         return id;
+    }
+
+    public static class AlarmReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String locationStr = Utility.getPreferredLocation(context);
+            Intent serviceIntent = new Intent(context, WeatherService.class);
+            serviceIntent.putExtra(WeatherService.LOCATION_KEY, locationStr);
+            context.startService(serviceIntent);
+        }
+    }
+
+    public static class BootReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED")) {
+                Utility.setUpRepeatingAlarm(context);
+            }
+        }
     }
 
 
