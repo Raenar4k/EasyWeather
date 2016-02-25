@@ -6,13 +6,11 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -48,6 +46,10 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
         forecastFragment.setIsTwoPane(isTwoPane);
 
         locationSetting = Utility.getPreferredLocation(this);
+
+        if (locationSetting.equals(getString(R.string.pref_location_default))) {
+            showLocationSetup();
+        }
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -93,6 +95,12 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
                 detailFragment.updateLocation(locationSetting);
             }
         }
+    }
+
+    private void showLocationSetup() {
+        Intent intent = new Intent(this, SettingsActivity.class);
+        intent.putExtra(Intent.EXTRA_TEXT, "firstLaunch");
+        startActivity(intent);
     }
 
     @Override

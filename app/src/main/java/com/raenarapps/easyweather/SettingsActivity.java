@@ -1,6 +1,7 @@
 package com.raenarapps.easyweather;
 
 import android.annotation.TargetApi;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -8,6 +9,7 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
@@ -28,6 +30,20 @@ public class SettingsActivity extends AppCompatActivity {
         fragment = new GeneralPreferencesFragment();
         getFragmentManager().beginTransaction()
                 .replace(R.id.container, fragment).commit();
+
+        if (getIntent().hasExtra(Intent.EXTRA_TEXT)) {
+            AlertDialog dialog = new AlertDialog.Builder(this)
+                    .setTitle(getString(R.string.dialog_location_title))
+                    .setMessage(getString(R.string.dialog_location_message))
+                    .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .create();
+            dialog.show();
+        }
     }
 
     public static class GeneralPreferencesFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener {
@@ -85,10 +101,13 @@ public class SettingsActivity extends AppCompatActivity {
                 Log.d(TAG, "new location preference =" + newLocationPref);
                 PreferenceManager.getDefaultSharedPreferences(this).edit()
                         .putString(placesPreference.getKey(), newLocationPref)
-                        .commit();
+                        .apply();
                 placesPreference.setDefaultValue(newLocationPref);
                 placesPreference.setSummary(newLocationPref);
 
+                if (getIntent().hasExtra(Intent.EXTRA_TEXT)) {
+                    this.finish();
+                }
             } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
                 Status status = PlaceAutocomplete.getStatus(this, data);
                 Log.i(TAG, status.getStatusMessage());

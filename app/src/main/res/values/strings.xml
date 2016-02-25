@@ -55,4 +55,10 @@
     <string name="format_notification">
      Today: <xliff:g id="condition">%s</xliff:g> <xliff:g id="high">%1.0f</xliff:g>\u00B0 / <xliff:g id="low">%1.0f</xliff:g>\u00B0
     </string>
+
+    <!--Dialogs-->
+    <string name="dialog_location_message">To start, select your location in settings</string>
+    <string name="ok" translatable="false">OK</string>
+    <string name="dialog_location_title">Location is not set</string>
+
 </resources>

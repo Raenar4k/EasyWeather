@@ -28,4 +28,6 @@
     <string name="format_notification">Сегодня: <xliff:g id="condition">%s</xliff:g> <xliff:g id="high">%1.0f</xliff:g>\u00B0 / <xliff:g id="low">%1.0f</xliff:g>\u00B0</string>
     <string name="action_view_map">Посмотреть на карте</string>
     <string name="action_refresh">Обновить</string>
+    <string name="dialog_location_message">Выберите ваше местоположение в настройках</string>
+    <string name="dialog_location_title">Местоположение не выбрано</string>
 </resources>
