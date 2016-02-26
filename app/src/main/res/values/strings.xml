@@ -18,7 +18,7 @@
         <item>Metric</item>
         <item>Imperial</item>
     </string-array>
-    <string-array name="pref_units_values" translatable="false" >
+    <string-array name="pref_units_values" translatable="false">
         <item>metric</item>
         <item>imperial</item>
     </string-array>
@@ -55,6 +55,9 @@
     <string name="format_notification">
      Today: <xliff:g id="condition">%s</xliff:g> <xliff:g id="high">%1.0f</xliff:g>\u00B0 / <xliff:g id="low">%1.0f</xliff:g>\u00B0
     </string>
+
+    <!--Share string-->
+    <string name="appinfo"> forecast by Easy Weather (playmarketlink.com)</string>
 
     <!--Dialogs-->
     <string name="dialog_location_message">To start, select your location in settings</string>

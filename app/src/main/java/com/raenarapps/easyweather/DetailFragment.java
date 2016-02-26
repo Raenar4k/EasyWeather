@@ -147,8 +147,10 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         String pressureString = context.getString(R.string.format_pressure, data.getDouble(COL_WEATHER_PRESSURE));
         int conditionId = data.getInt(COL_WEATHER_CONDITION_ID);
 
-        dayView.setText(Utility.getDayName(context, data.getLong(COL_WEATHER_DATE)));
-        dateView.setText(Utility.getFormattedMonthDay(data.getLong(COL_WEATHER_DATE)));
+        String dayName = Utility.getDayName(context, data.getLong(COL_WEATHER_DATE));
+        dayView.setText(dayName);
+        String formattedMonthDay = Utility.getFormattedMonthDay(data.getLong(COL_WEATHER_DATE));
+        dateView.setText(formattedMonthDay);
         iconView.setImageResource(Utility.getArtResourceForConditionId(conditionId));
         descriptionView.setText(description);
         tempHighView.setText(tempHigh);
@@ -156,6 +158,15 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         humidityView.setText(humidityString);
         windView.setText(windString);
         pressureView.setText(pressureString);
+
+        forecastString = new StringBuilder()
+                .append(getString(R.string.format_forecast, dayName, formattedMonthDay)).append("\n")
+                .append(description).append(" ")
+                .append(tempHigh).append(" / ").append(tempLow).append(", ")
+                .append(Utility.formatStringFirstLowerCase(windString)).append(", ")
+                .append(Utility.formatStringFirstLowerCase(pressureString)).append("\n")
+                .append(getString(R.string.appinfo))
+                .toString();
 
         if (shareActionProvider != null) {
             shareActionProvider.setShareIntent(createShareForecastIntent());

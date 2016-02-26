@@ -11,6 +11,7 @@ import android.preference.PreferenceManager;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Locale;
 
 public class Utility {
 
@@ -60,8 +61,15 @@ public class Utility {
         } else if (diffInDays > 0 && diffInDays < 7) {
             return getDayName(context, dateInMillis);
         } else {
-            SimpleDateFormat shortenedDateFormat = new SimpleDateFormat("EEE d MMM");
-            return shortenedDateFormat.format(dateInMillis);
+            SimpleDateFormat shortenedDateFormat;
+            String currentLanguage = Locale.getDefault().getLanguage();
+            if (currentLanguage.equals("ru")) {
+                shortenedDateFormat = new SimpleDateFormat("EEE d MMM");
+            } else {
+                shortenedDateFormat = new SimpleDateFormat("EEE MMM d");
+            }
+            String shortDate = shortenedDateFormat.format(dateInMillis);
+            return formatStringFirstUpperCase(shortDate);
         }
     }
 
@@ -80,14 +88,29 @@ public class Utility {
             return context.getString(R.string.tomorrow);
         } else {
             SimpleDateFormat dayFormat = new SimpleDateFormat("EEEE");
-            return dayFormat.format(dateInMillis);
+            String dayName = dayFormat.format(dateInMillis);
+            return formatStringFirstUpperCase(dayName);
         }
     }
 
     public static String getFormattedMonthDay(long dateInMillis) {
-        SimpleDateFormat monthDayFormat = new SimpleDateFormat("d MMMM");
+        SimpleDateFormat monthDayFormat;
+        String currentLanguage = Locale.getDefault().getLanguage();
+        if (currentLanguage.equals("ru")) {
+            monthDayFormat = new SimpleDateFormat("d MMMM");
+        } else {
+            monthDayFormat = new SimpleDateFormat("MMMM d");
+        }
         String monthDayString = monthDayFormat.format(dateInMillis);
         return monthDayString;
+    }
+
+    public static String formatStringFirstUpperCase(String stringToFormat) {
+        return stringToFormat.substring(0, 1).toUpperCase() + stringToFormat.substring(1);
+    }
+
+    public static String formatStringFirstLowerCase(String stringToFormat) {
+        return stringToFormat.substring(0, 1).toLowerCase() + stringToFormat.substring(1);
     }
 
     public static long normalizeDate(long timeInMillis) {
