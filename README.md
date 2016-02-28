@@ -1,5 +1,4 @@
-![banner6](https://cloud.githubusercontent.com/assets/13849790/13380626/4424f554-de50-11e5-81e3-041f028f2a92.png)
---
+# Easy Weather
 
 ![compare](https://cloud.githubusercontent.com/assets/13849790/13380406/14df2904-de4b-11e5-9c02-e549347bbc59.png)
 
